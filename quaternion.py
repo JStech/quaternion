@@ -16,12 +16,12 @@ class Quaternion:
             self.q = np.array(args[0])
         elif len(args) == 1 and isinstance(args[0], Quaternion):
             self.q = args[0].q.copy()
-        elif len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], np.ndarray):
+        elif len(args) == 2 and isinstance(args[0], (int, float, np.number)) and isinstance(args[1], np.ndarray):
             self.q = np.array([args[0], *args[1]])
         elif len(args) == 4:
             self.q = np.array([*args])
         else:
-            raise ValueError(f"I can't make a quaternion from this {args}")
+            raise ValueError(f"I can't make a quaternion from this {args} {[type(a) for a in args]}")
 
     @property
     def w(self):
@@ -49,14 +49,14 @@ class Quaternion:
     def __mul__(self, other):
         if isinstance(other, Quaternion):
             return self.q * other.q
-        if isinstance(other, (int, float)):
+        if isinstance(other, (int, float, np.number)):
             return Quaternion(other * self.q)
         return Quaternion(self.q * other)
 
     def __rmul__(self, other):
         if isinstance(other, Quaternion):
             return other.q * self.q
-        if isinstance(other, (int, float)):
+        if isinstance(other, (int, float, np.number)):
             return Quaternion(other * self.q)
         return Quaternion(other * self.q)
 
@@ -106,7 +106,7 @@ class Quaternion:
 
     def inv(self):
         qnorm2 = np.linalg.norm(self.q)**2
-        return Quaternion(1/qnorm2 * self.q)
+        return 1/qnorm2 * self.conj()
 
     @staticmethod
     def exp(q):

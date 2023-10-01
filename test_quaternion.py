@@ -27,6 +27,10 @@ class TestQuaternion(unittest.TestCase):
         self.assertTrue(np.allclose((self.uq1**3).q, -self.q_id.q))
         uq = UnitQuaternion(self.q1)
         self.assertTrue(np.allclose(uq.q, 30**-0.5 * np.array([1, 2, 3, 4])))
+        self.assertTrue(np.allclose(self.uq1.inv().q, np.array([0.5, -0.5, -0.5, -0.5])))
+        self.assertTrue(np.allclose((self.uq1.inv() @ self.uq1).q, np.array([1., 0., 0., 0.])))
+        self.assertTrue(np.allclose(self.q1.inv().q, 1/30 * np.array([1, -2, -3, -4])))
+        self.assertTrue(np.allclose((self.q1.inv() @ self.q1).q, np.array([1., 0., 0., 0.])))
 
 if __name__ == "__main__":
     unittest.main()
