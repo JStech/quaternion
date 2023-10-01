@@ -11,12 +11,17 @@ class Quaternion:
         if len(args) == 1 and isinstance(args[0], np.ndarray):
             assert args[0].shape in ((4,), (4, 1), (1, 4))
             self.q = args[0].copy()
+        elif len(args) == 1 and isinstance(args[0], list):
+            assert len(args[0]) == 4
+            self.q = np.array(args[0])
         elif len(args) == 1 and isinstance(args[0], Quaternion):
             self.q = args[0].q.copy()
         elif len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], np.ndarray):
             self.q = np.array([args[0], *args[1]])
         elif len(args) == 4:
             self.q = np.array([*args])
+        else:
+            raise ValueError(f"I can't make a quaternion from this {args}")
 
     @property
     def w(self):
@@ -46,14 +51,14 @@ class Quaternion:
             return self.q * other.q
         if isinstance(other, (int, float)):
             return Quaternion(other * self.q)
-        return self.q * other
+        return Quaternion(self.q * other)
 
     def __rmul__(self, other):
         if isinstance(other, Quaternion):
             return other.q * self.q
         if isinstance(other, (int, float)):
             return Quaternion(other * self.q)
-        return other * self.q
+        return Quaternion(other * self.q)
 
     def __matmul__(self, other):
         if isinstance(other, Quaternion):
@@ -106,13 +111,17 @@ class Quaternion:
     @staticmethod
     def exp(q):
         theta = np.linalg.norm(q.v)
+        if theta < 1e-15:
+            return Quaternion(math.exp(q.w), 0, 0, 0)
         v = q.v / theta
-        return Quaternion(math.exp(q.q[0]) * math.cos(theta), math.exp(q.q[0]) * math.sin(theta) * v)
+        return Quaternion(math.exp(q.w) * math.cos(theta), math.exp(q.w) * math.sin(theta) * v)
 
     @staticmethod
     def log(q):
         qnorm = np.linalg.norm(q.q)
         vnorm = np.linalg.norm(q.v)
+        if vnorm < 1e-15:
+            return Quaternion(math.log(q.w), 0, 0, 0)
         return Quaternion(math.log(qnorm), 1/vnorm * math.acos(q.w / qnorm) * q.v)
 
 class UnitQuaternion(Quaternion):
