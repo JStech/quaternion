@@ -8,10 +8,12 @@ class Quaternion:
     """Implementation of generic quaternions. If you're using quaternions to represent 3D rotations, use a
     UnitQuaternion object."""
     def __init__(self, *args):
-        if len(args) == 1 and args[0].isinstance(np.ndarray):
+        if len(args) == 1 and isinstance(args[0], np.ndarray):
             assert args[0].shape in ((4,), (4, 1), (1, 4))
             self.q = args[0].copy()
-        elif len(args) == 2 and args[0].isinstance((int, float)) and args[1].isinstance(np.ndarray):
+        elif len(args) == 1 and isinstance(args[0], Quaternion):
+            self.q = args[0].q.copy()
+        elif len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], np.ndarray):
             self.q = np.array([args[0], *args[1]])
         elif len(args) == 4:
             self.q = np.array([*args])
@@ -40,23 +42,23 @@ class Quaternion:
         return self.w
 
     def __mul__(self, other):
-        if other.isinstance(Quaternion):
+        if isinstance(other, Quaternion):
             return self.q * other.q
-        if other.isinstance((int, float)):
+        if isinstance(other, (int, float)):
             return Quaternion(other * self.q)
         return self.q * other
 
     def __rmul__(self, other):
-        if other.isinstance(Quaternion):
+        if isinstance(other, Quaternion):
             return other.q * self.q
-        if other.isinstance((int, float)):
+        if isinstance(other, (int, float)):
             return Quaternion(other * self.q)
         return other * self.q
 
     def __matmul__(self, other):
-        if other.isinstance(Quaternion):
+        if isinstance(other, Quaternion):
             return Quaternion._qmul(self, other)
-        if other.isinstance(np.ndarray):
+        if isinstance(other, np.ndarray):
             if other.shape not in ((3,), (3, 1)):
                 raise ValueError("A quaternion can only be multiplied by a vector of length 3 (shape (3,) or (3, 1))")
             q_r = Quaternion(0, *other.q)
@@ -83,9 +85,6 @@ class Quaternion:
 
     def __repr__(self):
         return f"Quaternion({self.q})"
-
-    def isinstance(self, obj_type):
-        return isinstance(self, obj_type)
 
     @staticmethod
     def _qmul(q_l, q_r):
